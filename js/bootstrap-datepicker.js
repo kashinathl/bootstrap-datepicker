@@ -41,6 +41,7 @@
 		this._process_options(options);
 
 		this.element = $(element);
+		this.format = DPGlobal.parseFormat(this.o.format);
 		this.isInline = false;
 		this.isInput = this.element.is('input');
 		this.component = this.element.is('.date') ? this.element.find('.add-on, .btn') : false;
@@ -399,12 +400,18 @@
 			//-------------------
 			if ( this.multidate != true ) 
 				return DPGlobal.formatDate(this.date, format, this.o.language);
-			// Here we could sort them or have them in any order. I guess it should be option if they are chronological or first-selected -order
-      // Now i guess they are more or less random.
-      var selected_dates_list=[];
-      for ( var seldate_key in this.dateSelected )
-      {
-        selected_dates_list.push( DPGlobal.formatDate( this.dateSelected[seldate_key] , format, this.o.language) )
+			
+			// sorting of selected dates added
+      var selected_dates_list=[],
+        selected_dates_arr=[],
+        selected_dates_sort = [];
+
+      for ( var seldate_key in this.dateSelected ){
+        selected_dates_arr.push(this.dateSelected[seldate_key].valueOf());
+      }
+      selected_dates_sort = selected_dates_arr.sort();
+      for ( var count=0; count< selected_dates_sort.length; count++ ){
+        selected_dates_list.push( DPGlobal.formatDate( new Date(selected_dates_sort[count]) , format, this.o.language) );
       }
       return selected_dates_list.join(",");
 			//-------------------
@@ -872,6 +879,28 @@
         this.dateSelected[date.valueOf()] = date;
       }
     }, 
+		//--------------------
+		
+		//--------------------$('input').datepicker('_reset_date');
+		_reset_date: function(){
+      this.dateSelected = {}
+      if (this.isInput)
+        this.element.val("");
+      else
+        this.element.find('input').val("");
+      this.update();
+    },
+
+		//-------------------$('input').datepicker('_update_dates', date value array);
+    _update_dates: function(arrDates){
+      console.log(arrDates);
+			var date = null;
+      for(i=0; i<arrDates.length; i++){
+        date = DPGlobal.parseDate(arrDates[i], this.format, this.o.language);
+        console.log(date);
+        this._setDate(date);
+      }
+    },
 		//--------------------
 
 		_setDate: function(date, which){
